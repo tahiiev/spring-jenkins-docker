@@ -1,0 +1,8 @@
+run/ThemeParkApplication.java
+ run.ThemeParkApplication
+run/entity/ThemeParkRide.java
+ run.entity.ThemeParkRide
+run/controller/ThemeParkRideController.java
+ run.controller.ThemeParkRideController
+run/repository/ThemeParkRideRepository.java
+ run.repository.ThemeParkRideRepository
