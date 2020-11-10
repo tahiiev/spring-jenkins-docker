@@ -12,19 +12,13 @@ pipeline {
                     sh "./gradlew test"
                }
           }
-          stage('Build Docker image') {
-                steps {
-                    sh './gradlew docker'
-                }
-          }
-          stage('Push Docker image') {
-                      environment {
-                          DOCKER_HUB_LOGIN = credentials('docker-hub')
-                      }
+          stage('Building our image') {
                       steps {
-                          sh 'docker login --username=avsimvadim --password=Vadym1595'
-                          sh './gradlew dockerPush'
+                          script {
+                              dockerImage = docker.build registry + ":$BUILD_NUMBER"
+                          }
                       }
-          }
+           }
+
      }
 }
