@@ -1,4 +1,8 @@
 pipeline {
+    environment {
+      imageName = 'avsimvadim/spring-boot-jenkins-docker'
+      registryCredentialSet = 'dockerhub'
+    }
      agent any
      stages {
           stage("Compile") {
