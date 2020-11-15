@@ -1,9 +1,5 @@
 pipeline {
-    environment {
-      imageName = 'avsimvadim/spring-boot-jenkins-docker'
-      registryCredentialSet = 'dockerhub'
-    }
-     agent any
+    agent any
      stages {
           stage("Compile") {
                steps {
@@ -16,20 +12,21 @@ pipeline {
                     sh "./gradlew test"
                }
           }
-          stage('Build Docker image') {
-                      steps {
-                          sh './gradlew docker'
-                      }
-                  }
-                  stage('Push Docker image') {
-                      environment {
-                          DOCKER_HUB_LOGIN = credentials('docker-hub')
-                      }
-                      steps {
-                          sh 'docker login --username=avsimvadim --password=Vadym1595'
-                          sh './gradlew dockerPush'
-                      }
-                  }
+          stage ('Build docker') {
+              steps {
+                  sh "./gradlew build"
+              }
+          }
+          steps {
+              withDockerRegistry(credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/') {
+                  sh 'docker push avsimvadim/app'
+              }
+          }
+          stage ('Deploy') {
+              steps {
+                  sh 'docker run -d -p 8080:8080 avsimvadim/app'
+              }
+          }
 
      }
 }
