@@ -16,26 +16,20 @@ pipeline {
                     sh "./gradlew test"
                }
           }
-           stage('Building our image') {
+          stage('Build Docker image') {
                       steps {
-                          script {
-                              dockerImage = docker.build registry + ":$BUILD_NUMBER"
-                          }
+                          sh './gradlew docker'
                       }
                   }
-          stage('Deploy our image') {
-                       steps {
-                           script {
-                               docker.withRegistry( '', registryCredential ) {
-                                   dockerImage.push()
-                           }
-                       }
-                   }
-                   stage('Cleaning up') {
-                       steps {
-                           sh "docker rmi $registry:$BUILD_NUMBER"
-                       }
-                   }
+                  stage('Push Docker image') {
+                      environment {
+                          DOCKER_HUB_LOGIN = credentials('docker-hub')
+                      }
+                      steps {
+                          sh 'docker login --username=avsimvadim --password=Vadym1595'
+                          sh './gradlew dockerPush'
+                      }
+                  }
 
      }
 }
