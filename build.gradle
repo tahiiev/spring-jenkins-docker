@@ -1,13 +1,9 @@
-buildscript {
-    dependencies {
-        classpath('gradle.plugin.com.palantir.gradle.docker:gradle-docker:0.13.0')
-    }
-}
-
 plugins {
     id 'java'
     id 'io.spring.dependency-management' version "1.0.10.RELEASE"
     id 'org.springframework.boot' version '2.3.4.RELEASE'
+    id "com.palantir.docker" version "0.22.1"
+    id 'com.palantir.docker-run' version "0.22.1"
 }
 
 repositories {
@@ -31,23 +27,19 @@ test {
     useJUnitPlatform()
 }
 
-apply plugin: 'com.palantir.docker'
-
-group = 'avsimvadim'
-
-bootJar {
-    baseName = 'app'
-    version =  '1.0'
-}
-
-task unpack(type: Copy) {
-    dependsOn bootJar
-    from(zipTree(tasks.bootJar.outputs.files.singleFile))
-    into("build/dependency")
-}
+version '1.0'
 
 docker {
-    name "${project.group}/${bootJar.baseName}"
-    copySpec.from(tasks.unpack.outputs).into("dependency")
-    buildArgs(['DEPENDENCY': "dependency"])
+    name "${project.name}:${project.version}"
+    dockerfile file('src/main/java/run/Dockerfile')
+    copySpec.from(jar).rename(".*","app.jar")
+    buildArgs(['JAR_FILE':"app.jar"])
+    tag 'DockerHub',"avsimvadim/spring-boot-jenkins-docker:${project.version}"
+}
+
+dockerRun {
+    name "${project.name}"
+    image "${project.name}:${project.version}"
+    ports '8080:8080'
+    clean true
 }

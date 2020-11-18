@@ -1,32 +1,28 @@
 pipeline {
     agent any
      stages {
-          stage("Compile") {
-               steps {
-                    sh "chmod +x ./gradlew"
-                    sh "./gradlew compileJava"
-               }
-          }
-          stage("Unit test") {
-               steps {
-                    sh "./gradlew test"
-               }
-          }
           stage ('Build docker') {
               steps {
-                  sh "./gradlew build"
+                  sh "chmod +x ./gradlew"
+                  sh "gradle build"
               }
           }
-          steps {
-              withDockerRegistry(credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/') {
-                  sh 'docker push avsimvadim/app'
-              }
+          stage("Unit test") {
+                  steps {
+                    sh "./gradlew test"
+                  }
           }
-          stage ('Deploy') {
-              steps {
-                  sh 'docker run -d -p 8080:8080 avsimvadim/app'
-              }
+          dockerStop
+          stage('Docker stop, build, run,push') {
+                steps{
+                sh './gradlew dockerStop'
+                }
+                steps{
+                sh './gradlew docker'
+                }
+                steps{
+                sh './gradlew dockerRun'
+                }
           }
-
      }
 }
