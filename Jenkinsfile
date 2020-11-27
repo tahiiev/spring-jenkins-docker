@@ -1,28 +1,33 @@
 pipeline {
     agent any
-     stages {
-          stage ('Build docker') {
-              steps {
-                  sh "chmod +x ./gradlew"
-                  sh "gradle build"
-              }
-          }
-          stage("Unit test") {
-                  steps {
-                    sh "./gradlew test"
-                  }
-          }
-          dockerStop
-          stage('Docker stop, build, run,push') {
-                steps{
-                sh './gradlew dockerStop'
-                }
-                steps{
+
+    triggers {
+        pollSCM '* * * * *'
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh './gradlew assemble'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh './gradlew test'
+            }
+        }
+        stage('Build Docker image') {
+            steps {
                 sh './gradlew docker'
-                }
-                steps{
-                sh './gradlew dockerRun'
-                }
-          }
-     }
+            }
+        }
+        stage('Push Docker image') {
+            environment {
+                DOCKER_HUB_LOGIN = credentials('dockerhub')
+            }
+            steps {
+                sh 'docker login --username=$DOCKER_HUB_LOGIN_USR --password=$DOCKER_HUB_LOGIN_PSW'
+                sh './gradlew dockerPush'
+            }
+        }
+    }
 }
