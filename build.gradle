@@ -36,7 +36,7 @@ docker {
     name imageName
     dockerfile file('src/main/java/run/Dockerfile')
     copySpec.from(jar).rename(".*","app.jar")
-    tag 'DockerHub',"avsimvadim/spring-boot-jenkins-docker:${version}"
+    tag 'dockerhub',"avsimvadim/spring-boot-jenkins-docker:${version}"
 }
 
 dockerRun {
