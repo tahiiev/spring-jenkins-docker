@@ -1,8 +1,8 @@
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 plugins {
     id 'java'
     id 'io.spring.dependency-management' version "1.0.10.RELEASE"
     id 'org.springframework.boot' version '2.3.4.RELEASE'
+    id 'pl.allegro.tech.build.axion-release' version '1.12.0'
     id "com.palantir.docker" version "0.22.1"
     id 'com.palantir.docker-run' version "0.22.1"
 }
@@ -28,30 +28,20 @@ test {
     useJUnitPlatform()
 }
 
-version '1.0'
+project.version = scmVersion.version
+
+String imageName = "avsimvadim/spring-boot-jenkins-docker:$version";
 
 docker {
-    name "${project.name}:${project.version}"
+    name imageName
     dockerfile file('src/main/java/run/Dockerfile')
     copySpec.from(jar).rename(".*","app.jar")
-    tag 'DockerHub',"avsimvadim/spring-boot-jenkins-docker:${project.version}"
+    tag 'DockerHub',"avsimvadim/spring-boot-jenkins-docker:${version}"
 }
-
-Process process
-if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows()) {
-    process = "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock alpine stat -c %g /var/run/docker.sock".execute()
-} else if (DefaultNativePlatform.getCurrentOperatingSystem().isLinux()) {
-    process = "stat -c %g /var/run/docker.sock".execute()
-} else {
-    throw new GradleException("Unsupported operating system. No way to find group of /var/run/docker.sock.")
-}
-def out = new ByteArrayOutputStream()
-process.waitForProcessOutput(out, System.err)
-String dockerSockGroupId = out.toString().trim()
 
 dockerRun {
     name "${project.name}"
-    image "${project.name}:${project.version}"
+    image imageName
     ports '8080:8080'
     clean true
 }
